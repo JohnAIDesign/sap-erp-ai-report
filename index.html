@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>SAP Cloud ERP 的 AI 能力调研报告</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  body { font-family: "Microsoft YaHei","PingFang SC","Noto Sans CJK SC",sans-serif;
+         font-size: 10.5pt; line-height: 1.65; color: #222; }
+  h1 { font-size: 22pt; color: #0a3d7a; margin-bottom: 4px; }
+  h2 { font-size: 14pt; color: #fff; background: #0a6ed1; padding: 5px 10px;
+       margin-top: 22px; border-radius: 3px; page-break-after: avoid; }
+  h3 { font-size: 11.5pt; color: #0a3d7a; border-left: 4px solid #0a6ed1;
+       padding-left: 8px; margin-top: 14px; page-break-after: avoid; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; font-size: 9.5pt;
+          page-break-inside: avoid; }
+  th { background: #e8f1fb; color: #0a3d7a; border: 1px solid #b7cde6; padding: 5px; text-align: left; }
+  td { border: 1px solid #d0d7de; padding: 5px; vertical-align: top; }
+  .cover { border-bottom: 3px solid #0a6ed1; padding-bottom: 10px; margin-bottom: 16px; }
+  .sub { color: #555; font-size: 10pt; }
+  .box { background: #f3f8fe; border: 1px solid #b7cde6; border-radius: 4px; padding: 10px 14px; margin: 10px 0; }
+  .warn { background: #fff7e6; border: 1px solid #f0c36d; border-radius: 4px; padding: 10px 14px; margin: 10px 0; }
+  .tag { display:inline-block; padding:0 6px; border-radius:3px; font-size:8.5pt; color:#fff; }
+  .ga { background:#2e8540; } .beta { background:#d9822b; } .plan { background:#777; }
+  pre { background:#f6f8fa; border:1px solid #d0d7de; padding:8px; font-size:9pt; line-height:1.4; }
+  .src { font-size: 8.5pt; color: #555; }
+  ul { margin: 4px 0 8px 0; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>SAP Cloud ERP 的 AI 能力调研报告</h1>
+  <div class="sub">主题：SAP Business AI / Joule 在制造企业"订单到交付"中的应用、价值与局限<br>
+  适用对象：制造企业管理层、IT与数字化负责人、ERP选型团队<br>
+  说明：信息来自SAP官方公开资料和第三方研究，发布状态和价格以SAP最新报价为准</div>
+</div>
+
+<h2>一、核心结论</h2>
+<div class="box">
+<b>1. SAP云ERP有AI，而且AI已经成为它的核心卖点。</b> 公有云版和私有云版都内置Joule助手和嵌入式AI，基础能力不额外收费。<br>
+<b>2. SAP的路线是"内核不动、AI加层"。</b> MRP、库存、过账、成本这些确定性的内核保持不变，上面叠加三层：对话入口（Joule）、语义层（Knowledge Graph）和智能体（Agent）。<br>
+<b>3. 对三个痛点的解决程度：</b>录入繁琐（★★★★）、问数取数（★★★★）、动态规则（★★，AI只是辅助人配置，不直接在生产系统里改规则）。<br>
+<b>4. 主要门槛：</b>必须上云；高级智能体按AI Units计费；中文和本地化的成熟度需要实测；数据质量决定AI效果。
+</div>
+
+<h2>二、SAP Cloud ERP 产品版本</h2>
+<table>
+<tr><th style="width:22%">版本</th><th style="width:28%">原名称</th><th>特点</th><th style="width:22%">AI 获得节奏</th></tr>
+<tr><td><b>SAP Cloud ERP（公有云）</b></td><td>S/4HANA Cloud Public Edition；中型企业可通过 GROW with SAP 购买</td><td>标准化SaaS，多租户共享，"干净内核"，扩展受限</td><td>新AI功能<b>最先上线</b>，季度更新</td></tr>
+<tr><td><b>SAP Cloud ERP Private（私有云）</b></td><td>S/4HANA Cloud Private Edition（RISE with SAP）</td><td>单租户，可做较深的客制化，适合中大型、流程复杂的企业</td><td>年度版本加功能包（FPS）更新，AI功能稍晚于公有云</td></tr>
+<tr><td>S/4HANA 本地部署 / ECC</td><td>—</td><td>传统部署方式</td><td>AI能力有限。ECC基本不在Joule支持范围内，一般需要先升级或迁移上云（需向SAP核实）</td></tr>
+</table>
+<p class="src">据SAP用户组的AI商务FAQ：Joule基础场景要求2021及以上版本，大部分高级用例要求2023 FPS02及以上版本。</p>
+
+<h2>三、SAP Business AI 的结构</h2>
+<pre>
+┌────────────────────────────────────────────────────────────┐
+│ ① 交互入口：Joule / Joule Work（对话、语音、手机，可与 M365 Copilot 互通）│
+├────────────────────────────────────────────────────────────┤
+│ ② Joule Assistants（按岗位组织的协调层）→ Joule Agents（执行具体任务）     │
+├────────────────────────────────────────────────────────────┤
+│ ③ 嵌入式 AI：Fiori 应用内的识别、预测、推荐、摘要                    │
+├────────────────────────────────────────────────────────────┤
+│ ④ 平台：Joule Studio（自建技能和智能体）、Knowledge Graph（语义层）、       │
+│        Business Data Cloud / Cloud ERP Intelligence（数据产品）       │
+├────────────────────────────────────────────────────────────┤
+│ ⑤ ERP 内核：主数据、单据流、MRP、库存、财务（确定性、可审计）              │
+└────────────────────────────────────────────────────────────┘
+</pre>
+<ul>
+<li><b>Joule的四种交互模式</b>：事务型（查询和修改单据、诊断问题）、导航型（直接打开对应应用）、知识型（检索文档回答问题）、分析型（问指标、出图表）。</li>
+<li><b>权限继承</b>：用户在系统里本来做不了的事，通过Joule也做不了，所有操作都留有审计记录。</li>
+<li><b>语义层</b>：SAP Knowledge Graph映射了700多万个数据字段的业务含义，这是Joule能"听懂业务"的基础。</li>
+<li><b>Joule Work</b>（2026年Sapphire大会发布）：能根据用户意图动态生成工作区，可以跨SAP和非SAP系统，计划于2026年三季度正式发布。</li>
+<li><b>Joule Studio</b>：客户可以用低代码方式自建技能和智能体。据第三方报道，其中的智能体构建功能已于2026年初正式发布。</li>
+</ul>
+
+<h2>四、制造企业"订单到交付"中的AI场景</h2>
+<table>
+<tr><th style="width:15%">环节</th><th>AI 能力</th><th style="width:28%">解决的问题</th></tr>
+<tr><td>销售订单</td><td>上传客户PO（PDF或图片），用Document AI提取信息，生成"销售订单请求"，人工确认后转为正式订单；可配合RPA自动抓取邮件附件</td><td>录入繁琐、手工搬运数据。<br>注意：基础版仅支持英、德文</td></tr>
+<tr><td>订单跟踪</td><td>用自然语言查询订单状态，跨订单处理、供应、交货、开票四个阶段诊断：缺哪些字段、有无信用冻结或交货冻结、最早可交付日期</td><td>"订单为什么卡住"要跨部门打电话问</td></tr>
+<tr><td>计划</td><td>计划助手：订单确认（交期答复）、库存分配、持续重排计划</td><td>交期答复慢，缺料发现得晚</td></tr>
+<tr><td>工艺/BOM</td><td>产品设计助手：配方开发、产品数据维护；工程到制造交接（2026年发布）：设计或主数据变更前，预判对BOM、工艺路线、生产版本、成本和提前期的影响</td><td>以前靠Excel和人工协调来评估变更影响</td></tr>
+<tr><td>生产排产与执行</td><td>制造助手下的多个智能体：生产计划与运营（校验物料、产能、排程，给出替代方案）、订单进度（多层级连锁分析）、车间主管（应对扰动、重新排序）、生产卓越（监控质量和设备信号）</td><td>缺件、产能冲突、现场异常响应慢</td></tr>
+<tr><td>质量</td><td>Joule加Document AI上传并提取质量证书数据，与检验要求匹配，标记异常；根据自然语言描述预填缺陷记录（私有云 2025 FPS02）</td><td>质检单据人工录入、比对</td></tr>
+<tr><td>物流/仓储</td><td>物流助手加物流智能体：执行异常处理、仓库人力计划</td><td>仓储作业调度靠经验</td></tr>
+<tr><td>财务</td><td>结账、对账、现金头寸、税务合规等智能体，以及异常检测</td><td>月结慢，对账工作量大</td></tr>
+</table>
+<p><span class="tag ga">已正式发布</span> PO识别、订单状态诊断等基础能力已正式发布。<span class="tag beta">Beta</span> <span class="tag plan">路线图</span> 很多供应链和生产智能体还在Beta阶段，或在2026年内分批发布。<b>选型时需要逐项核实发布状态。</b></p>
+
+<h2>五、对三个痛点的评估</h2>
+<table>
+<tr><th style="width:20%">痛点</th><th style="width:12%">解决程度</th><th>说明</th></tr>
+<tr><td>1. 录入繁琐</td><td>★★★★</td><td>非结构化单据（PO、证书、发票）自动提取，对话式创建单据，人工确认。生成的是"草稿/请求"，不是直接过账</td></tr>
+<tr><td>2. 取数问数麻烦</td><td>★★★★</td><td>依托Knowledge Graph语义层，用业务语言问数，还能跨模块诊断问题。企业自建的Z字段和自建表需要通过Joule Studio扩展后才能识别</td></tr>
+<tr><td>3. 动态字段、表单、规则</td><td>★★</td><td>Joule<b>不直接修改生产系统的规则</b>。字段和规则仍然通过关键用户扩展、SAP Build流程规则、ABAP Cloud开发来完成，AI的作用是用自然语言加速生成规则和代码。变更要经过开发、测试、生产三套环境，可审计</td></tr>
+</table>
+
+<h2>六、计费模式</h2>
+<table>
+<tr><th style="width:18%">档位</th><th>包含内容</th><th style="width:32%">计费方式</th></tr>
+<tr><td><b>Base AI</b></td><td>Joule Base（对话助手）和嵌入式AI功能，例如Joule for Developers的ABAP能力</td><td>包含在所有SAP云订阅中，<b>不额外收费</b></td></tr>
+<tr><td><b>Premium AI</b></td><td>Joule Agents、Document AI、Document Grounding、Joule for Consultants等</td><td>用<b>AI Units</b>（预付费点数）结算：每年购买，12个月内未使用即作废；智能体按动作次数扣费，功能按请求或记录数扣费；Assistant本身不单独收费</td></tr>
+<tr><td>自定义AI</td><td>Joule Studio的高级能力</td><td>通过BTP平台额度等方式解锁</td></tr>
+</table>
+<div class="warn">
+<b>参考数据（第三方报道，仅供估算，以SAP报价为准）：</b>AI Unit约7欧元/个，最低采购约100个；SAP正在逐步取消"按用户按月"的套餐，改为智能体按动作计费（有报道称每个动作约0.02 AI Units，一次智能体运行通常包含多个动作）；Joule for Consultants保持每用户每月35 AI Units。<br>
+<b>建议：</b>先用SAP AI Estimator估算用量，在合同里明确AI Units额度、超量单价和用量监控方式。
+</div>
+
+<h2>七、局限与风险</h2>
+<ul>
+<li><b>必须上云</b>：AI能力集中在Cloud ERP上，本地老版本和ECC的用户需要先完成迁移。</li>
+<li><b>中文与本地化</b>：部分功能有语言限制，需要用中文单据做概念验证（POC）实测。国内部署还要确认数据合规与驻留要求、大模型托管地点，以及中国区的服务可用性。</li>
+<li><b>数据质量</b>：主数据不干净，AI的结果就不可信。实施方的普遍经验是"干净的数据比配置更重要"。</li>
+<li><b>成熟度</b>：发布节奏快，"已正式发布"、"Beta"和"路线图"要分清楚，避免为PPT上的功能买单。</li>
+<li><b>成本不确定</b>：AI Units按消耗计费，智能体用得越多，成本越难预测。</li>
+<li><b>智能体以建议为主</b>：关键决策（排产调整、缺料处理）仍由人授权执行。这是设计理念，不是缺陷。</li>
+</ul>
+
+<h2>八、对制造企业的建议</h2>
+<table>
+<tr><th style="width:24%">企业现状</th><th>建议</th></tr>
+<tr><td>已用 SAP S/4HANA Cloud</td><td>先启用Base AI（订单状态诊断、导航、知识问答），再挑1到2个高价值场景（PO识别、生产计划智能体）购买AI Units做试点，按投资回报率扩展</td></tr>
+<tr><td>使用 SAP ECC 或本地版</td><td>把AI作为上云决策的因素之一来评估。过渡期可以通过OData/API加外部Agent或MCP实现只读问数</td></tr>
+<tr><td>使用金蝶、用友等国产ERP</td><td>借鉴SAP的模式（语义层加岗位助手加专用智能体加人在回路），用"MCP加自建语义层"实现，成本更低，中文适配更好</td></tr>
+<tr><td>尚未上ERP</td><td>可以考虑GROW with SAP（公有云）或国产云ERP。核心原则是：<b>事务内核用成熟产品，灵活交互交给AI</b></td></tr>
+</table>
+
+<div class="box">
+<b>一句话总结：</b>SAP用实际产品证明了，AI时代的ERP是"确定性内核 + 业务语义层 + 智能体交互层"。AI改变的是ERP的"脸"和"神经"，不是"骨骼"。
+</div>
+
+<h3>主要信息来源</h3>
+<p class="src">
+SAP Sapphire 2026 Innovation News Guide（sap.com）；SAP News：Cloud ERP Private 2025 FPS02（2026年10月）、Business AI季度发布说明；SAP AI定价页（sap.com/products/artificial-intelligence/pricing）；SAP用户组AI商务FAQ（2026年6月）；SAP Cloud ERP Private产品页；learning.sap.com Joule相关课程；ERP Research《SAP Joule Explained 2026》及私有云AI功能清单（第三方）；Redress Compliance《SAP Joule Pricing 2026》（第三方）。
+</p>
+
+</body>
+</html>
